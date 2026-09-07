@@ -1,26 +1,205 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Colors from Sequence / InheritanceFi Design System */
+  --color-violet-pulse: #a565ff;
+  --color-indigo-ink: #5e5cff;
+  --color-lavender-wash: #ebebff;
+  --color-iris-glow: #e0c9ff;
+  --color-ledger-green: #2e7317;
+  --color-paper-white: #ffffff;
+  --color-bone: #f7f7f7;
+  --color-fog: #f1f1f1;
+  --color-silver: #efefef;
+  --color-marble: #fff6df;
+  --color-graphite: #1d1d20;
+  --color-slate: #42424a;
+  --color-iron: #505050;
+  --color-steel: #757575;
+  --color-smoke: #92939e;
+  --color-ash: #e5e7eb;
+  --color-mist: #d1d9e4;
+  --color-olive-gray: #808076;
+  --color-noir: #000000;
+
+  /* Typography Scale */
+  --text-caption: 11px;
+  --text-body: 14px;
+  --text-body-lg: 16px;
+  --text-subheading: 18px;
+  --text-heading-sm: 24px;
+  --text-heading: 40px;
+  --text-display: 46px;
+
+  /* Spacing */
+  --page-max-width: 1200px;
+  --section-gap: 80px;
+  --card-padding: 24px;
+
+  /* Radii */
+  --radius-cards: 8px;
+  --radius-badges: 9999px;
+  --radius-inputs: 4px;
+  --radius-buttons: 9999px;
+  --radius-large-panels: 16px;
+
+  /* Shadows */
+  --shadow-subtle: rgba(58, 58, 64, 0.08) 0px 0px 0px 1px, rgba(0, 0, 0, 0.05) 0px 1px 3px 0px;
+  --shadow-subtle-2: rgba(29, 29, 32, 0.08) 0px 0px 0px 1px;
+  --shadow-violet-halo: 0px 0px 0px 1px rgba(58,58,64,0.1), 0px 1px 3px 0px rgba(0,0,0,0.1), 0px 0px 16px 3px rgba(224, 201, 255, 0.75);
+  --shadow-product-card: rgb(239, 239, 239) 0px 0px 0px 2px, rgba(0, 0, 0, 0.01) 0px 22px 9px 0px, rgba(0, 0, 0, 0.04) 0px 12px 7px 0px, rgba(0, 0, 0, 0.05) 0px 1px 3px 0px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@theme {
+  --color-violet-pulse: #a565ff;
+  --color-indigo-ink: #5e5cff;
+  --color-lavender-wash: #ebebff;
+  --color-iris-glow: #e0c9ff;
+  --color-ledger-green: #2e7317;
+  --color-paper-white: #ffffff;
+  --color-bone: #f7f7f7;
+  --color-fog: #f1f1f1;
+  --color-silver: #efefef;
+  --color-marble: #fff6df;
+  --color-graphite: #1d1d20;
+  --color-slate: #42424a;
+  --color-iron: #505050;
+  --color-steel: #757575;
+  --color-smoke: #92939e;
+  --color-ash: #e5e7eb;
+  --color-mist: #d1d9e4;
+  --color-olive-gray: #808076;
+  --color-noir: #000000;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-serif: var(--font-serif), ui-serif, Georgia, Cambria, Times New Roman, serif;
+  --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-paper-white);
+  color: var(--color-iron);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Editorial display typography */
+.font-display-serif {
+  font-family: var(--font-serif), Georgia, serif;
+  letter-spacing: -0.025em;
+  font-weight: 300;
+}
+
+/* Hairline border backbone */
+.border-hairline {
+  border: 1px solid var(--color-ash);
+}
+
+.border-hairline-mist {
+  border: 1px solid var(--color-mist);
+}
+
+/* Signature Primary Action Pill with Violet Halo */
+.btn-primary-pulse {
+  background-color: var(--color-violet-pulse);
+  color: #ffffff;
+  border-radius: 9999px;
+  font-weight: 500;
+  font-size: 14px;
+  padding: 8px 18px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-violet-halo);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary-pulse:hover {
+  background-color: #9851ff;
+  box-shadow: 0px 0px 0px 1px rgba(58,58,64,0.12), 0px 2px 6px 0px rgba(0,0,0,0.12), 0px 0px 22px 5px rgba(224, 201, 255, 0.9);
+  transform: translateY(-1px);
+}
+
+.btn-primary-pulse:active {
+  transform: translateY(0px);
+}
+
+/* Secondary Button */
+.btn-secondary {
+  background-color: #ffffff;
+  color: var(--color-graphite);
+  border: 1px solid var(--color-silver);
+  border-radius: 9999px;
+  font-weight: 500;
+  font-size: 14px;
+  padding: 8px 18px;
+  transition: all 0.15s ease;
+  box-shadow: rgba(58,58,64,0.06) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 1px 2px 0px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-bone);
+  border-color: var(--color-ash);
+  color: var(--color-noir);
+}
+
+/* Atmospheric Washes */
+.hero-radial-wash {
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(186, 217, 249, 0.4) 0%, rgba(234, 234, 255, 0.45) 45%, rgba(255, 255, 255, 0) 80%);
+}
+
+.subtle-purple-fade {
+  background: linear-gradient(90deg, rgba(165, 101, 255, 0.08) 0%, rgba(94, 92, 255, 0.03) 100%);
+}
+
+/* Status Badges */
+.badge-ledger-success {
+  background-color: var(--color-bone);
+  color: var(--color-ledger-green);
+  border: 1px solid rgba(46, 115, 23, 0.2);
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.badge-lavender-tag {
+  background-color: var(--color-lavender-wash);
+  color: var(--color-indigo-ink);
+  border: 1px solid rgba(94, 92, 255, 0.2);
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #fbfbfb;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d8dbe0;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #bec2c9;
 }

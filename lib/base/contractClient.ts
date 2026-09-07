@@ -1,15 +1,16 @@
 import { createPublicClient, createWalletClient, custom, http, parseEther, formatEther, encodeFunctionData } from "viem";
 import { baseSepolia } from "viem/chains";
-import { INHERITANCE_VAULT_ABI } from "./contractArtifact";
+import { INHERITANCE_VAULT_ABI, INHERITANCE_VAULT_BYTECODE } from "./contractArtifact";
 
 export const BASE_SEPOLIA_CHAIN_ID = 84532;
 export const BASE_SEPOLIA_RPC = "https://sepolia.base.org";
 export const BASE_EXPLORER_URL = "https://sepolia.basescan.org";
 
-// Deployed MVP contract address on Base Sepolia
-export const INHERITANCE_VAULT_ADDRESS: `0x${string}` = "0x8a92B7436bA88Fe41Ac42e316A74C2361622384a";
+// Canonical deployed MVP contract address on Base Sepolia
+export const DEFAULT_VAULT_ADDRESS: `0x${string}` = "0x8a92B7436bA88Fe41Ac42e316A74C2361622384a";
+export const INHERITANCE_VAULT_ADDRESS = DEFAULT_VAULT_ADDRESS;
 
-export { INHERITANCE_VAULT_ABI };
+export { INHERITANCE_VAULT_ABI, INHERITANCE_VAULT_BYTECODE };
 
 export const publicBaseClient = createPublicClient({
   chain: baseSepolia,
@@ -24,6 +25,31 @@ export interface OnchainTxResult {
   timestamp: string;
   gasUsed: string;
   isRealWalletTx?: boolean;
+  deployedAddress?: string;
+}
+
+export function getActiveVaultAddress(): `0x${string}` {
+  if (typeof window !== "undefined") {
+    const custom = localStorage.getItem("inheritancefi_custom_vault_address");
+    if (custom && custom.startsWith("0x") && custom.length === 42) {
+      return custom as `0x${string}`;
+    }
+  }
+  return DEFAULT_VAULT_ADDRESS;
+}
+
+export function setActiveVaultAddress(address: `0x${string}`): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("inheritancefi_custom_vault_address", address);
+    window.dispatchEvent(new CustomEvent("inheritance-vault-address-updated", { detail: address }));
+  }
+}
+
+export function resetToDefaultVaultAddress(): void {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("inheritancefi_custom_vault_address");
+    window.dispatchEvent(new CustomEvent("inheritance-vault-address-updated", { detail: DEFAULT_VAULT_ADDRESS }));
+  }
 }
 
 export async function connectWeb3Wallet(): Promise<{ address: `0x${string}`; balanceEth: string } | null> {
@@ -33,13 +59,11 @@ export async function connectWeb3Wallet(): Promise<{ address: `0x${string}`; bal
 
   const ethereum = (window as any).ethereum;
 
-  // Request accounts
   const accounts: `0x${string}`[] = await ethereum.request({ method: "eth_requestAccounts" });
   if (!accounts || accounts.length === 0) return null;
 
   const address = accounts[0];
 
-  // Prompt switch to Base Sepolia (Chain ID: 84532 / 0x14a34)
   try {
     await ethereum.request({
       method: "wallet_switchEthereumChain",
@@ -62,7 +86,6 @@ export async function connectWeb3Wallet(): Promise<{ address: `0x${string}`; bal
     }
   }
 
-  // Fetch real onchain balance from Base Sepolia
   try {
     const balance = await publicBaseClient.getBalance({ address });
     return {
@@ -75,9 +98,9 @@ export async function connectWeb3Wallet(): Promise<{ address: `0x${string}`; bal
 }
 
 /**
- * Executes a REAL signed smart contract distribution on Base Sepolia using connected Web3 wallet.
+ * Deploys a REAL new InheritanceVault smart contract instance on Base Sepolia using connected Web3 wallet.
  */
-export async function executeRealWalletDistribution(userAddress: `0x${string}`): Promise<OnchainTxResult> {
+export async function deployRealVaultContract(userAddress: `0x${string}`): Promise<{ contractAddress: `0x${string}`; txHash: `0x${string}`; explorerUrl: string }> {
   if (typeof window === "undefined" || !(window as any).ethereum) {
     throw new Error("Web3 wallet not detected.");
   }
@@ -87,21 +110,54 @@ export async function executeRealWalletDistribution(userAddress: `0x${string}`):
     transport: custom((window as any).ethereum),
   });
 
-  // Call executeDistribution() on Base Sepolia contract
+  const txHash = await walletClient.deployContract({
+    abi: INHERITANCE_VAULT_ABI,
+    bytecode: INHERITANCE_VAULT_BYTECODE,
+    account: userAddress,
+  });
+
+  const receipt = await publicBaseClient.waitForTransactionReceipt({ hash: txHash });
+  const contractAddress = receipt.contractAddress as `0x${string}`;
+
+  if (!contractAddress) {
+    throw new Error("Failed to receive deployed contract address from Base Sepolia.");
+  }
+
+  setActiveVaultAddress(contractAddress);
+
+  return {
+    contractAddress,
+    txHash,
+    explorerUrl: `${BASE_EXPLORER_URL}/address/${contractAddress}`,
+  };
+}
+
+/**
+ * Executes a REAL signed smart contract distribution on Base Sepolia using connected Web3 wallet.
+ */
+export async function executeRealWalletDistribution(userAddress: `0x${string}`): Promise<OnchainTxResult> {
+  if (typeof window === "undefined" || !(window as any).ethereum) {
+    throw new Error("Web3 wallet not detected.");
+  }
+
+  const currentVault = getActiveVaultAddress();
+  const walletClient = createWalletClient({
+    chain: baseSepolia,
+    transport: custom((window as any).ethereum),
+  });
+
   const data = encodeFunctionData({
     abi: INHERITANCE_VAULT_ABI,
     functionName: "executeDistribution",
   });
 
-  // Broadcast real transaction on Base Sepolia
   const txHash = await walletClient.sendTransaction({
     account: userAddress,
-    to: INHERITANCE_VAULT_ADDRESS,
+    to: currentVault,
     data,
-    value: parseEther("0.00001"), // micro deposit to ensure contract has execution balance
+    value: parseEther("0.00001"),
   });
 
-  // Wait for real block receipt on Base Sepolia
   const receipt = await publicBaseClient.waitForTransactionReceipt({ hash: txHash });
 
   return {
@@ -123,6 +179,7 @@ export async function depositTestnetEth(userAddress: `0x${string}`, amountEth: s
     throw new Error("Web3 wallet not detected.");
   }
 
+  const currentVault = getActiveVaultAddress();
   const walletClient = createWalletClient({
     chain: baseSepolia,
     transport: custom((window as any).ethereum),
@@ -130,7 +187,7 @@ export async function depositTestnetEth(userAddress: `0x${string}`, amountEth: s
 
   const txHash = await walletClient.sendTransaction({
     account: userAddress,
-    to: INHERITANCE_VAULT_ADDRESS,
+    to: currentVault,
     value: parseEther(amountEth),
   });
 
@@ -148,7 +205,7 @@ export async function depositTestnetEth(userAddress: `0x${string}`, amountEth: s
 }
 
 /**
- * Fast simulation fallback for 0-cost instant judge evaluation.
+ * Fast simulation fallback for 0-cost instant evaluation.
  */
 export async function simulateOnchainExecution(): Promise<OnchainTxResult> {
   const randomHex = Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join("");

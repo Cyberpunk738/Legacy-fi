@@ -40,9 +40,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${interSans.variable} ${newsreaderSerif.variable} ${jetbrainsMono.variable} h-full antialiased bg-white text-[#1d1d20]`}
     >
-      <body className="min-h-full flex flex-col antialiased bg-white selection:bg-[#ebebff] selection:text-[#5e5cff]">
+      <body 
+        suppressHydrationWarning
+        className="min-h-full flex flex-col antialiased bg-white selection:bg-[#ebebff] selection:text-[#5e5cff]"
+      >
         {children}
       </body>
     </html>

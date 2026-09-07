@@ -1,6 +1,11 @@
 import { chromium } from "playwright";
+import ffmpegPath from "ffmpeg-static";
+import { execFile } from "child_process";
 import fs from "fs";
 import path from "path";
+import util from "util";
+
+const execFilePromise = util.promisify(execFile);
 
 async function runDemoRecording() {
   console.log("🎬 Starting LegacyFi Presentation-Grade Demo Recorder for Hackathon Judges...");
@@ -348,10 +353,36 @@ async function runDemoRecording() {
     })[0];
 
     const targetName = `legacyfi-judge-demo-${Date.now()}.webm`;
-    fs.renameSync(path.join(recordingsDir, latestFile), path.join(recordingsDir, targetName));
-    console.log(`\n🎉 High-Production Demo Video Complete!`);
-    console.log(`📹 Video saved to: recordings/${targetName}`);
-    console.log(`💡 You can submit this video or upload to YouTube/Loom for hackathon judges.`);
+    const webmPath = path.join(recordingsDir, targetName);
+    fs.renameSync(path.join(recordingsDir, latestFile), webmPath);
+
+    const mp4Name = targetName.replace(/\.webm$/, ".mp4");
+    const mp4Path = path.join(recordingsDir, mp4Name);
+    const standardJudgeMp4 = path.join(recordingsDir, "legacyfi-judge-demo.mp4");
+
+    console.log(`\n🎉 WebM Recording Complete: recordings/${targetName}`);
+    console.log(`🎬 Converting to MP4 using ffmpeg-static...`);
+
+    const args = [
+      "-y",
+      "-i", webmPath,
+      "-c:v", "libx264",
+      "-pix_fmt", "yuv420p",
+      "-preset", "fast",
+      "-crf", "22",
+      "-movflags", "+faststart",
+      mp4Path,
+    ];
+
+    try {
+      await execFilePromise(ffmpegPath, args);
+      fs.copyFileSync(mp4Path, standardJudgeMp4);
+      console.log(`\n🎉 High-Production MP4 Demo Video Complete!`);
+      console.log(`📹 MP4 Video saved to: recordings/${mp4Name}`);
+      console.log(`⭐ Standard Link: recordings/legacyfi-judge-demo.mp4`);
+    } catch (err) {
+      console.warn("⚠️ Could not convert to MP4 automatically:", err.message);
+    }
   }
 }
 

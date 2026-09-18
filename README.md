@@ -1,5 +1,5 @@
 # 🏛️ LegacyFi (InheritanceFi)
-> **Autonomous, life-stage inheritance vaults powered by persistent AI memory and Base blockchain settlement.**
+> **Autonomous, life-stage inheritance vaults powered by persistent AI memory and Base settlement.**
 
 Built for the **SIBYL Labs Hackathon 2026** (Multiplier Track: Base + Virtuals Protocol).
 
